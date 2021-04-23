@@ -14,10 +14,7 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
 import java.net.URL;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.ResourceBundle;
+import java.util.*;
 import java.util.regex.Pattern;
 
 import org.apache.commons.csv.CSVFormat;
@@ -113,9 +110,17 @@ public class Controller {
 
                 // mapping data type
 
-                //create statement
+                //pre handle header name
+                List<String> handledHeaderNames = new ArrayList<>();
                 for(String headerName : headerNames){
-                    createStatement.append(headerName);
+                    handledHeaderNames.add(preHandleString(headerName));
+                }
+                //pre handle header name
+
+                //create statement
+                for(String handleHeaderName : handledHeaderNames){
+//                    String preHandledString = preHandleString(headerName);
+                    createStatement.append(handleHeaderName);
                     String dataType = dataTypeMapping.get(currentColumn);
                     if(currentColumn==columnNumber) {
                         createStatement.append(" " + dataType + " ");
@@ -126,7 +131,10 @@ public class Controller {
                 }
                 createStatement.append(");");
                 System.out.println(createStatement);
+
                 //end create statement
+
+                //insert
                 for(CSVRecord csvRecord : csvRecords){
 //                    if(currentLine == 1){
 //                        StringBuffer create = new StringBuffer("CREATE TABLE ");
@@ -135,11 +143,38 @@ public class Controller {
 //                        }
 //                        System.out.println(create);
 //                    }
-                    currentLine++;
+                    StringBuffer insertQuery = new StringBuffer("INSERT INTO "+tableName+" (");
+                    String prefix =" ";
+                    for(String handleHeaderName : handledHeaderNames){
+                        insertQuery.append(prefix);
+                        prefix = ",";
+                        insertQuery.append(handleHeaderName);
+                    }
+                    insertQuery.append(") VALUES(");
+                    String prefixNd ="";
+                    for(int i=0;i<columnNumber;i++){
+                        String dataTypeColumn = dataTypeMapping.get(i+1);
+                        insertQuery.append(prefixNd);
+                        prefixNd=",";
+                        if(dataTypeColumn.equals(STRING_TYPE)){
+                            insertQuery.append("'"+csvRecord.get(i)+"'");
+                        } else {
+                            insertQuery.append(csvRecord.get(i));
+                        }
+                    }
+                    insertQuery.append(");");
+//                    currentLine++;
 //                    System.out.println("INSERT INTO"+tableName+"(csv");
+                    System.out.println(insertQuery);
                 }
+                // end insert
             }
         }
     }
-
+    public String preHandleString(String string){
+        String response = string.trim();
+        response=response.toLowerCase();
+        response=response.replaceAll("\\s","_");
+        return response;
+    }
 }
