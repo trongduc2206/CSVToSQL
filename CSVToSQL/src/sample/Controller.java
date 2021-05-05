@@ -5,6 +5,7 @@ import javafx.fxml.FXML;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
+import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.stage.FileChooser;
 import javafx.stage.Stage;
@@ -28,9 +29,14 @@ public class Controller {
     @FXML
     private TextField textField1;
 
+    @FXML
+    private TextArea textArea;
+
     private static final String NUMERIC_TYPE = "NUMERIC";
 
     private static final String STRING_TYPE = "STRING";
+
+    private static final String NEW_LINE = "%n";
 
     private FileChooser fileChooser = new FileChooser();
 
@@ -68,6 +74,7 @@ public class Controller {
     }
 
     public void onDefaultActionHandler(ActionEvent event) throws IOException{
+        textArea.setEditable(false);
         if(textField1.getText().isEmpty()){
             Alert alert = new Alert(Alert.AlertType.ERROR);
             alert.setContentText("Please fill out Table Name");
@@ -106,8 +113,8 @@ public class Controller {
 
                 }
 
-                StringBuffer createStatement = new StringBuffer("CREATE TABLE "+tableName+" (");
-
+//                StringBuffer createStatement = new StringBuffer("CREATE TABLE "+tableName+" (");
+                    textArea.appendText("CREATE TABLE "+tableName+" (");
                 // mapping data type
 
                 //pre handle header name
@@ -120,21 +127,27 @@ public class Controller {
                 //create statement
                 for(String handleHeaderName : handledHeaderNames){
 //                    String preHandledString = preHandleString(headerName);
-                    createStatement.append(handleHeaderName);
+//                    createStatement.append(handleHeaderName);
+                        textArea.appendText(handleHeaderName);
                     String dataType = dataTypeMapping.get(currentColumn);
                     if(currentColumn==columnNumber) {
-                        createStatement.append(" " + dataType + " ");
+//                        createStatement.append(" " + dataType + " ");
+                        textArea.appendText(" " + dataType + " ");
                     } else {
-                        createStatement.append(" " + dataType + ", ");
+//                        createStatement.append(" " + dataType + ", ");
+                        textArea.appendText(" " + dataType + ", ");
                     }
                     currentColumn++;
                 }
-                createStatement.append(");");
-                System.out.println(createStatement);
+//                createStatement.append(");");
+                textArea.appendText(");"+System.lineSeparator());
+//                System.out.println(createStatement);
 
                 //end create statement
 
                 //insert
+                StringBuffer insertQuery = new StringBuffer();
+
                 for(CSVRecord csvRecord : csvRecords){
 //                    if(currentLine == 1){
 //                        StringBuffer create = new StringBuffer("CREATE TABLE ");
@@ -143,33 +156,48 @@ public class Controller {
 //                        }
 //                        System.out.println(create);
 //                    }
-                    StringBuffer insertQuery = new StringBuffer("INSERT INTO "+tableName+" (");
+//                    StringBuffer insertQuery = new StringBuffer("INSERT INTO "+tableName+" (");
+//                    insertQuery.append("INSERT INTO "+tableName+" (");
+                    textArea.appendText("INSERT INTO "+tableName+" (");
                     String prefix =" ";
                     for(String handleHeaderName : handledHeaderNames){
-                        insertQuery.append(prefix);
+//                        insertQuery.append(prefix);
+                        textArea.appendText(prefix);
                         prefix = ",";
                         insertQuery.append(handleHeaderName);
+                        textArea.appendText(handleHeaderName);
                     }
-                    insertQuery.append(") VALUES(");
+//                    insertQuery.append(") VALUES(");
+                    textArea.appendText(") VALUES(");
                     String prefixNd ="";
                     for(int i=0;i<columnNumber;i++){
                         String dataTypeColumn = dataTypeMapping.get(i+1);
-                        insertQuery.append(prefixNd);
+//                        insertQuery.append(prefixNd);
+                        textArea.appendText(prefixNd);
                         prefixNd=",";
                         if(dataTypeColumn.equals(STRING_TYPE)){
-                            insertQuery.append("'"+csvRecord.get(i)+"'");
+//                            insertQuery.append("'"+csvRecord.get(i)+"'");
+                            textArea.appendText("'"+csvRecord.get(i)+"'");
                         } else {
-                            insertQuery.append(csvRecord.get(i));
+//                            insertQuery.append(csvRecord.get(i));
+                            textArea.appendText(csvRecord.get(i));
                         }
                     }
-                    insertQuery.append(");");
+//                    insertQuery.append(");"+"\\r\\n");
+                    textArea.appendText(");"+System.lineSeparator());
 //                    currentLine++;
 //                    System.out.println("INSERT INTO"+tableName+"(csv");
                     System.out.println(insertQuery);
                 }
                 // end insert
+//                textArea.setDisable(false);
+//                textArea.setText(insertQuery.toString());
+
             }
+
         }
+
+
     }
     public String preHandleString(String string){
         String response = string.trim();
@@ -177,4 +205,8 @@ public class Controller {
         response=response.replaceAll("\\s","_");
         return response;
     }
+
+//    tao file
+
+
 }
